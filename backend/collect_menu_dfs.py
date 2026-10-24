@@ -5,7 +5,7 @@ DataFrame.
 
 Expected layout (any depth works, the search is recursive):
 
-    backend/
+    server/
         data/
             2026-10-24/                <- a day folder (service date, YYYY-MM-DD)
                 locations.json         <- skipped (not a menu payload)
@@ -69,7 +69,7 @@ from marciano_json_to_df import menu_json_to_df
 # snapshot subfolders (or a single snapshot folder) and it will find every
 # menu_*.json beneath it.
 # ======================================================================
-DATA_ROOT = r"C:\Users\erict\OneDrive\Desktop\BU-Big-Backs\server\data"
+DATA_ROOT = str(Path(__file__).resolve().parent / "data")
 
 
 def _looks_like_menu(data: Any) -> bool:
