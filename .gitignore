@@ -1,0 +1,2 @@
+# server/dining_poller.py reads API_KEY from the root .env; never commit it
+.env
