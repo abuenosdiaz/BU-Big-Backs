@@ -5,6 +5,7 @@ import { Bell, BellRing, Star, ThumbsDown } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell } from "@/components/SiteHeader";
 import { LoveButton, Tag } from "@/components/DishCard";
+import { getItemAllergens } from "@/lib/api";
 import { dishImage, getDeviceId, rankByCampus, timeAgo, useDishes, type Dish } from "@/lib/dishes";
 import { toggleIn, useProfile } from "@/lib/profile";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +32,15 @@ function DishPage() {
   const dish = data?.find((d) => d.id === id);
   const rank = dish && data ? rankByCampus(data, dish.campus).findIndex((d) => d.id === id) + 1 : 0;
   const img = dish && dishImage(dish.name);
+  // Real ingredient list and allergen categories for this item, from the menu API.
+  const facts = useQuery({
+    queryKey: ["item-allergens", dish?.locationId, dish?.itemId],
+    enabled: !!dish,
+    queryFn: () => getItemAllergens(dish!.locationId, dish!.itemId),
+    staleTime: Infinity,
+    retry: 1,
+  });
+  const allergens = facts.data?.ingredients ? facts.data.allergens.map(allergenLabel) : null;
   const starred = profile.starred.includes(id);
   const disliked = profile.disliked.includes(id);
   const notify = profile.notifyMe.includes(id);
@@ -94,13 +104,17 @@ function DishPage() {
               </div>
               <div className="allergen-box mt-6">
                 <strong>
-                  {dish.allergens.length > 0
-                    ? `Likely contains: ${dish.allergens.join(", ")}`
-                    : "No common allergens detected from the name"}
+                  {facts.isLoading
+                    ? "Checking the ingredient list…"
+                    : !allergens
+                      ? "Allergen info isn't available for this dish"
+                      : allergens.length > 0
+                        ? `Contains: ${allergens.join(", ")}`
+                        : "No major allergens in the ingredient list"}
                 </strong>
                 <p className="mt-1">
-                  BU's menu doesn't list allergens, so these are guessed from the dish name and may be
-                  incomplete. Ask staff if you have an allergy.
+                  From BU Dining's ingredient list. It doesn't cover cross-contact in the kitchen, so ask
+                  staff if you have an allergy.
                 </p>
               </div>
             </div>
@@ -108,17 +122,10 @@ function DishPage() {
 
           <div className="mt-12 grid gap-10 md:grid-cols-[1fr_320px]">
             <div>
-              {dish.ingredients.length > 0 && (
+              {facts.data?.ingredients && (
                 <>
                   <h2 className="font-display text-3xl font-black tracking-tight text-foreground">Ingredients</h2>
-                  <ul className="mt-3 grid grid-cols-2 gap-2 text-sm text-foreground">
-                    {dish.ingredients.map((i) => (
-                      <li key={i} className="rounded-lg bg-secondary px-3 py-2">
-                        {i}
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-3 text-xs text-muted-foreground">Full ingredient statement: {dish.ingredients.join(", ")}.</p>
+                  <p className="mt-3 text-sm leading-relaxed text-foreground">{facts.data.ingredients}</p>
                 </>
               )}
               <Comments dish={dish} />
@@ -130,6 +137,9 @@ function DishPage() {
     </PageShell>
   );
 }
+
+/** "tree_nuts" -> "Tree nuts" */
+const allergenLabel = (a: string) => a[0]!.toUpperCase() + a.slice(1).replace("_", " ");
 
 const DV = { fat: 78, satFat: 20, chol: 300, sodium: 2300, carbs: 275, fiber: 28 };
 const pct = (v: number | undefined, dv: number) => `${Math.round(((v ?? 0) / dv) * 100)}%`;

@@ -5,7 +5,7 @@ import { PageShell } from "@/components/SiteHeader";
 import { DishCard } from "@/components/DishCard";
 import { CAMPUSES, MEALS, rankByCampus, useDishes } from "@/lib/dishes";
 import { HALLS } from "@/lib/halls";
-import { avoidsAllergens, fitsDiet, fitsProfile, useProfile, AVOIDS, toggleIn } from "@/lib/profile";
+import { fitsDiet, fitsProfile, useProfile, AVOIDS, toggleIn } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -27,13 +27,14 @@ const DIET_FILTERS = ["Vegetarian", "Vegan", "Halal", "Gluten-free"];
 const PREVIEW = 9;
 
 function Index() {
-  const { data, isLoading, error } = useDishes();
   const { profile } = useProfile();
   const [q, setQ] = useState("");
   const [hall, setHall] = useState<string | null>(null);
   const [meals, setMeals] = useState<string[]>([]);
   const [diets, setDiets] = useState<string[]>([]);
   const [avoid, setAvoid] = useState<string[]>([]);
+  // The API filters allergens: the profile's avoid list (when hiding mismatches) plus this page's.
+  const { data, isLoading, error } = useDishes([...(profile.hideMismatch ? profile.avoid : []), ...avoid]);
   const [sort, setSort] = useState<"loved" | "newest">("loved");
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<string[]>([]);
@@ -50,9 +51,9 @@ function Index() {
     }
     if (hall) list = list.filter((d) => d.hall === hall);
     if (meals.length) list = list.filter((d) => d.meals.some((m) => meals.includes(m)));
-    list = list.filter((d) => fitsDiet(d, diets) && avoidsAllergens(d, avoid));
+    list = list.filter((d) => fitsDiet(d, diets));
     return list;
-  }, [data, profile, q, hall, meals, diets, avoid]);
+  }, [data, profile, q, hall, meals, diets]);
 
   const order = (campus: string) => {
     const r = rankByCampus(dishes, campus);
@@ -104,7 +105,8 @@ function Index() {
       {profile.hideMismatch && (profile.diets.length > 0 || profile.avoid.length > 0) && (
         <p className="mt-2 text-sm text-muted-foreground">
           Showing only dishes that fit your restrictions ({[...profile.diets, ...profile.avoid.map((a) => `no ${a.toLowerCase()}`)].join(", ")}).
-          {profile.avoid.length > 0 && " Allergens are guessed from dish names, so always check with staff."}
+          {profile.avoid.length > 0 &&
+            " Allergens come from each dish's ingredient list, and dishes without one are hidden. Always check with staff if you have an allergy."}
         </p>
       )}
 
@@ -160,7 +162,7 @@ function Index() {
             </div>
             <FilterGroup label="Meal" options={todaysMeals} value={meals} onChange={setMeals} />
             <FilterGroup label="Diet" options={DIET_FILTERS} value={diets} onChange={setDiets} />
-            <FilterGroup label="Hide dishes likely containing" options={[...AVOIDS]} value={avoid} onChange={setAvoid} />
+            <FilterGroup label="Hide dishes containing" options={AVOIDS} value={avoid} onChange={setAvoid} />
             <p className="field-label mt-6">Sort by</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {(

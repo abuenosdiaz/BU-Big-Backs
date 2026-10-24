@@ -61,9 +61,6 @@ export function DishCard({ dish, rank }: { dish: Dish; rank: number }) {
           {dish.tags.map((t) => (
             <Tag key={t}>{t}</Tag>
           ))}
-          {dish.allergens.length > 0 && (
-            <span className="allergen-tag">Likely contains: {dish.allergens.join(", ")}</span>
-          )}
         </div>
       </div>
     </Link>
