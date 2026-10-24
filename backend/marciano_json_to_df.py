@@ -55,7 +55,9 @@ import pandas as pd
 # parse. It can be a plain file name (if the file sits next to this
 # script) or a full path such as r"C:\Users\you\Downloads\marciano.json".
 # ======================================================================
-JSON_PATH = r"C:\Users\erict\Downloads\Marciano's JSON.json"
+JSON_PATH = str(
+    Path(__file__).resolve().parent / "data" / "2026-10-24" / "menu_marciano.json"
+)
 
 # Optional: set to a file name to also write the flattened rows as CSV,
 # or leave as None to skip writing a CSV.
@@ -301,3 +303,7 @@ def main() -> pd.DataFrame:
 
 if __name__ == "__main__":
     main()
+
+
+# Load the JSON file at JSON_PATH into a DataFrame and save it to this variable.
+marcianosdf = load_menu_df(JSON_PATH)
