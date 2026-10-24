@@ -42,10 +42,11 @@ API_KEY_HEADER = "X-API-Key"
 # Per-request network timeout, in seconds.
 REQUEST_TIMEOUT = 30
 
-# Repository root (one level above this ``server`` directory).
-REPO_ROOT = Path(__file__).resolve().parent.parent
+# This script's own directory (the backend directory).
+BACKEND_DIR = Path(__file__).resolve().parent
 
-ENV_FILE = REPO_ROOT / ".env"
+# The API key is read from a ``.env`` file next to this script.
+ENV_FILE = BACKEND_DIR / ".env"
 
 # Snapshots are written here, one subfolder per day (``YYYY-MM-DD``).
 DATA_DIR = Path(__file__).resolve().parent / "data"
