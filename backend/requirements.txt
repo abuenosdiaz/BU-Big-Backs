@@ -1,0 +1,12 @@
+# Python dependencies for the BU Big Backs backend.
+#
+# server.py itself is standard-library only; these are needed by the
+# analysis modules (collect_menu_dfs, marciano_json_to_df,
+# dining_diet_analysis) that power the /api/menu and /api/vegan-outlook
+# endpoints.
+#
+# Install with:  pip install -r requirements.txt
+# (start.sh does this automatically when the packages are missing.)
+
+pandas~=3.0.6
+numpy~=2.1
