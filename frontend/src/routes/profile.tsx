@@ -90,10 +90,11 @@ function ProfilePage() {
         <div className="mt-4 grid gap-5 sm:grid-cols-3">
           {forYou.map((d) => (
             <Link key={d.id} to="/dish/$id" params={{ id: d.id }} className="dish-card">
-              <img src={dishImage(d.id)} alt={d.name} loading="lazy" width={944} height={704} className="aspect-[4/3] w-full rounded-xl object-cover" />
+              <img src={dishImage(d.name)} alt={d.name} loading="lazy" width={944} height={704} className="aspect-[4/3] w-full rounded-xl object-cover" />
               <p className="mt-2 font-semibold">{d.name}</p>
               <p className="text-xs text-muted-foreground">
-                {HALLS.find((h) => h.name === d.hall)?.short ?? d.hall} · Serving {meal}
+                {HALLS.find((h) => h.name === d.hall)?.short ?? d.hall} ·{" "}
+                {d.meals.includes(meal) ? "Being served now" : `Served at ${d.meals.join(", ").toLowerCase()}`}
               </p>
             </Link>
           ))}
@@ -117,11 +118,11 @@ function ProfilePage() {
             {list.map((d) => (
               <li key={d!.id}>
                 <Link to="/dish/$id" params={{ id: d!.id }} className="flex items-center gap-3 rounded-lg p-2 hover:bg-secondary">
-                  <img src={dishImage(d!.id)} alt="" width={48} height={48} className="h-12 w-12 rounded-lg object-cover" />
+                  <img src={dishImage(d!.name)} alt="" width={48} height={48} className="h-12 w-12 rounded-lg object-cover" />
                   <div>
                     <p className="font-semibold">{d!.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {d!.hall} · {d!.meal === meal ? "Being served now" : `Served at ${d!.meal.toLowerCase()}`}
+                      {d!.hall} · {d!.meals.includes(meal) ? "Being served now" : `Served at ${d!.meals.join(", ").toLowerCase()}`}
                     </p>
                   </div>
                 </Link>

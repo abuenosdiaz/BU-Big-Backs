@@ -86,6 +86,9 @@ function SettingsPage() {
             ))}
           </div>
           <p className="field-label mt-4">I'm allergic to / avoid</p>
+          <p className="text-xs text-muted-foreground">
+            BU's menu doesn't list allergens, so we guess them from dish names. Always check with staff.
+          </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {AVOIDS.map((d) => (
               <button key={d} type="button" onClick={() => set("avoid", toggleIn(f.avoid, d))} className={cn("chip", f.avoid.includes(d) && "chip-active")}>

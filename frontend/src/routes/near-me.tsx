@@ -59,7 +59,7 @@ function NearMe() {
         const km = distanceKm(here.lat, here.lng, h.lat, h.lng);
         const top = (data ?? [])
           .filter((d) => d.hall === h.name && (!onlyFits || fitsProfile(d, profile)))
-          .sort((a, b) => Number(b.meal === meal) - Number(a.meal === meal) || b.loves - a.loves)[0];
+          .sort((a, b) => Number(b.meals.includes(meal)) - Number(a.meals.includes(meal)) || b.loves - a.loves)[0];
         return { h, km, min: walkMinutes(km), top };
       }).sort((a, b) => a.km - b.km),
     [data, here.lat, here.lng, onlyFits, profile, meal],
@@ -116,8 +116,8 @@ function NearMe() {
             )}
             {shown.map(({ h, km, min, top }) => (
               <li key={h.name} className="panel flex items-center gap-4">
-                {top && dishImage(top.id) && (
-                  <img src={dishImage(top.id)} alt="" width={72} height={72} loading="lazy" className="h-16 w-16 rounded-lg object-cover" />
+                {top && dishImage(top.name) && (
+                  <img src={dishImage(top.name)} alt="" width={72} height={72} loading="lazy" className="h-16 w-16 rounded-lg object-cover" />
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">

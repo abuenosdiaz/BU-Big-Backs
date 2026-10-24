@@ -265,6 +265,15 @@ export type Database = {
     }
     Functions: {
       delete_my_content: { Args: { p_device: string }; Returns: undefined }
+      get_dish_stats: {
+        Args: { p_device: string }
+        Returns: {
+          comments: number
+          dish_id: string
+          loved: boolean
+          loves: number
+        }[]
+      }
       get_dishes: {
         Args: { p_device: string }
         Returns: {

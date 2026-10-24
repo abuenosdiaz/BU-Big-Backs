@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Dish } from "./dishes";
 
-export const DIETS = ["Vegetarian", "Vegan", "Pescatarian", "Halal", "Kosher", "Gluten-free"] as const;
+export const DIETS = ["Vegetarian", "Vegan", "Pescatarian", "Halal", "Gluten-free"] as const;
 export const AVOIDS = ["Peanuts", "Tree nuts", "Dairy", "Eggs", "Shellfish", "Soy", "Sesame"] as const;
 
 /** Maps "avoid" choices to allergen names stored on dishes. */
@@ -85,7 +85,9 @@ export function toggleIn(list: string[], v: string) {
 }
 
 export function fitsDiet(dish: Dish, diets: string[]) {
-  return diets.every((d) => {
+  // Skip diets the menu can't tell us about (e.g. "Kosher" saved by older versions).
+  const known = diets.filter((d) => (DIETS as readonly string[]).includes(d));
+  return known.every((d) => {
     if (d === "Vegetarian") return dish.tags.includes("Vegetarian") || dish.tags.includes("Vegan");
     if (d === "Pescatarian")
       return dish.tags.includes("Vegetarian") || dish.tags.includes("Vegan") || dish.allergens.includes("Fish");
