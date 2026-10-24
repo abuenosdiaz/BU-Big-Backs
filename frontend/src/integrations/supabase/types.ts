@@ -26,7 +26,7 @@ export type Database = {
         Insert: {
           body: string
           created_at?: string
-          device_id: string
+          device_id?: string
           dish_id: string
           id?: string
           tried?: boolean
@@ -136,7 +136,7 @@ export type Database = {
         Insert: {
           body: string
           created_at?: string
-          device_id: string
+          device_id?: string
           hall: string
           id?: string
           title: string
@@ -166,7 +166,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          device_id: string
+          device_id?: string
           hall?: string
           id?: string
           item: string
@@ -203,7 +203,7 @@ export type Database = {
         Insert: {
           again?: string | null
           created_at?: string
-          device_id: string
+          device_id?: string
           dish_id: string
           id?: string
           note?: string | null
@@ -264,9 +264,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      delete_my_content: { Args: { p_device: string }; Returns: undefined }
+      delete_my_content: { Args: never; Returns: undefined }
       get_dish_stats: {
-        Args: { p_device: string }
+        Args: never
         Returns: {
           comments: number
           dish_id: string
@@ -274,47 +274,8 @@ export type Database = {
           loves: number
         }[]
       }
-      get_dishes: {
-        Args: { p_device: string }
-        Returns: {
-          allergens: string[]
-          calories: number
-          campus: string
-          description: string
-          hall: string
-          id: string
-          ingredients: string[]
-          loved: boolean
-          loves: number
-          name: string
-          sort: number
-          station: string
-          tags: string[]
-        }[]
-      }
-      get_menu: {
-        Args: { p_device: string }
-        Returns: {
-          allergens: string[]
-          calories: number
-          campus: string
-          comments: number
-          description: string
-          hall: string
-          id: string
-          ingredients: string[]
-          loved: boolean
-          loves: number
-          meal: string
-          name: string
-          nutrition: Json
-          sort: number
-          station: string
-          tags: string[]
-        }[]
-      }
       get_requests: {
-        Args: { p_device: string }
+        Args: never
         Returns: {
           created_at: string
           hall: string
@@ -327,11 +288,11 @@ export type Database = {
         }[]
       }
       toggle_love: {
-        Args: { p_device: string; p_dish: string }
+        Args: { p_dish: string }
         Returns: boolean
       }
       toggle_request_vote: {
-        Args: { p_device: string; p_request: string }
+        Args: { p_request: string }
         Returns: boolean
       }
     }

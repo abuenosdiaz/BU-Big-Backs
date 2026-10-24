@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { PageShell } from "@/components/SiteHeader";
 import { AVOIDS, DEFAULT_PROFILE, DIETS, saveProfile, toggleIn, useProfile, type Profile } from "@/lib/profile";
-import { getDeviceId } from "@/lib/dishes";
+import { requireBuUser, toastWriteError } from "@/lib/auth";
 import { HALLS } from "@/lib/halls";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -151,8 +151,13 @@ function SettingsPage() {
             <button
               className="btn-outline"
               onClick={async () => {
+                try {
+                  await requireBuUser();
+                } catch (e) {
+                  return toastWriteError(e, "Couldn't delete your posts.");
+                }
                 if (!confirm("Delete all your comments and forum posts?")) return;
-                const { error } = await supabase.rpc("delete_my_content", { p_device: getDeviceId() });
+                const { error } = await supabase.rpc("delete_my_content");
                 toast(error ? "Couldn't delete your posts." : "Your posts were deleted.");
               }}
             >
