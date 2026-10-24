@@ -5,7 +5,8 @@ import { ChevronUp, Star } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell } from "@/components/SiteHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { getDeviceId, useDeviceId, useDishes } from "@/lib/dishes";
+import { requireBuUser, toastWriteError, useAuth } from "@/lib/auth";
+import { useDishes } from "@/lib/dishes";
 import { HALLS } from "@/lib/halls";
 import { useProfile } from "@/lib/profile";
 import { cn } from "@/lib/utils";
@@ -69,10 +70,9 @@ function RateMeal() {
 
   const submit = useMutation({
     mutationFn: async () => {
-      const device_id = getDeviceId();
+      await requireBuUser();
       const { error } = await supabase.from("meal_ratings").insert({
         dish_id: dishId,
-        device_id,
         overall,
         ...scales,
         again,
@@ -80,7 +80,9 @@ function RateMeal() {
       });
       if (error) throw error;
       if (share && note.trim()) {
-        await supabase.from("dish_comments").insert({ dish_id: dishId, body: note.trim(), tried: true, device_id });
+        await supabase
+          .from("dish_comments")
+          .insert({ dish_id: dishId, body: note.trim(), tried: true });
       }
     },
     onSuccess: () => {
@@ -92,7 +94,7 @@ function RateMeal() {
       setNote("");
       qc.invalidateQueries({ queryKey: ["comments", dishId] });
     },
-    onError: () => toast.error("Couldn't send your rating. Try again."),
+    onError: (e) => toastWriteError(e, "Couldn't send your rating. Try again."),
   });
 
   return (
@@ -172,9 +174,10 @@ function RequestItem() {
   const [reason, setReason] = useState("");
   const send = useMutation({
     mutationFn: async () => {
+      await requireBuUser();
       const { error } = await supabase
         .from("item_requests")
-        .insert({ kind, item: item.trim(), hall, reason: reason.trim() || null, device_id: getDeviceId() });
+        .insert({ kind, item: item.trim(), hall, reason: reason.trim() || null });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -183,7 +186,7 @@ function RequestItem() {
       toast("Request sent!");
       qc.invalidateQueries({ queryKey: ["requests"] });
     },
-    onError: () => toast.error("Couldn't send your request."),
+    onError: (e) => toastWriteError(e, "Couldn't send your request."),
   });
   return (
     <form
@@ -234,22 +237,23 @@ function RequestItem() {
 }
 
 function TopRequests() {
-  const device = useDeviceId();
+  const user = useAuth();
   const qc = useQueryClient();
   const { data } = useQuery({
-    queryKey: ["requests", device],
-    enabled: !!device,
+    queryKey: ["requests", user?.id ?? null],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_requests", { p_device: device! });
+      const { data, error } = await supabase.rpc("get_requests");
       if (error) throw error;
       return (data ?? []).map((r) => ({ ...r, votes: Number(r.votes) })).sort((a, b) => b.votes - a.votes);
     },
   });
   const vote = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.rpc("toggle_request_vote", { p_request: id, p_device: device! });
+      await requireBuUser();
+      const { error } = await supabase.rpc("toggle_request_vote", { p_request: id });
       if (error) throw error;
     },
+    onError: (e) => toastWriteError(e, "Couldn't save your vote. Try again."),
     onSettled: () => qc.invalidateQueries({ queryKey: ["requests"] }),
   });
   return (
