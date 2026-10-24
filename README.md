@@ -2,19 +2,19 @@
 
 Rate and find the best food in BU's dining halls.
 
-## Web app (`ui/ux`)
+## Web app (`frontend/`)
 
-TanStack Start + React + Tailwind, backed by Supabase. Pages live in `ui/ux/src/routes/`, dish photos and the logo in `ui/ux/src/assets/`, and the database setup in `ui/ux/drizzle/migrations/`.
+Next.js + Tailwind, backed by Supabase. See [frontend/README.md](frontend/README.md).
 
 ```sh
-cd ui/ux
-cp .env.example .env
-bun install
-bun run dev            # http://localhost:8080
+cd frontend
+cp .env.example .env.local
+npm install
+npm run dev            # http://localhost:3000
 ```
 
-`bun run build` builds, `bun run test` runs the tests.
+`concept/` is the original Lovable prototype the app was ported from.
 
 ## Dining data pipeline
 
-`server/dining_poller.py` pulls BU's dining menus every 30 minutes into `server/data/` (needs `API_KEY=` in a `.env` at the repo root). `collect_menu_dfs.py` and `marciano_json_to_df.py` turn those snapshots into dataframes.
+`server/dining_poller.py` pulls BU's dining menus for today and the next 6 days into `server/data/<date>/` (needs `API_KEY=` in a `.env` at the repo root). `server/collect_menu_dfs.py` and `server/marciano_json_to_df.py` turn those snapshots into dataframes.
