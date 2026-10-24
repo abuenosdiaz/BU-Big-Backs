@@ -1,1 +1,0 @@
-UPDATE public.dishes SET tags='{}', description='Rich spicy miso broth with noodles, braised pork, corn, scallions and a jammy egg.', ingredients='{Ramen noodles,Miso,Braised pork,Corn,Scallion,Soft egg,Chili oil}' WHERE id='east-ramen';
