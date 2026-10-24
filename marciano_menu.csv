@@ -1,0 +1,72 @@
+Food name,Meal,Station,Saturated fat,Carbs,Sugars,Proteins,Calories,Vegan,Vegetarian,Halal,Gluten free
+Scrambled Eggs,Breakfast,Brick Oven,3.0,0.0,0.0,12.0,140.0,False,True,True,False
+Hard-Boiled Egg,Breakfast,Brick Oven,2.0,0.0,0.0,7.0,80.0,False,True,True,False
+Chicken Sausage Link Halal,Breakfast,Brick Oven,3.0,1.0,1.0,13.0,120.0,False,False,True,False
+Crispy Tater Tots,Breakfast,Brick Oven,1.0,13.0,1.0,1.0,100.0,True,True,True,False
+Apple-Brown Sugar Compote,Breakfast,Brick Oven,0.0,9.0,8.0,0.0,40.0,True,True,True,False
+Egg & Cheese Bagel,Breakfast,Brick Oven,5.0,49.0,6.0,18.0,460.0,False,False,False,False
+Sundried Tomato Frittata,Breakfast,Brick Oven,3.0,30.0,20.0,21.0,280.0,False,False,False,False
+Shakshuka Casserole,Breakfast,Gluten Free Kitchen,5.0,10.0,6.0,10.0,275.0,False,False,False,True
+Create Your Own,Breakfast,Salad Bar,NaN,NaN,NaN,NaN,NaN,False,False,False,False
+Create Your Own Omelet Station,Breakfast,Saute,NaN,NaN,NaN,NaN,NaN,False,True,True,False
+Sesame Honey Salmon,Lunch,Concept Kitchen,1.0,0.0,0.0,15.0,110.0,False,False,False,False
+Aloo Gobi,Lunch,Concept Kitchen,1.0,11.0,2.0,2.0,85.0,True,True,False,False
+Chinese Mapo Tofu,Lunch,Concept Kitchen,2.0,15.0,5.0,11.0,205.0,False,False,True,False
+Ginger-Sesame Dressing,Lunch,Concept Kitchen,1.0,6.0,5.0,1.0,85.0,True,True,False,False
+Vegetable Fried Brown Rice,Lunch,Concept Kitchen,1.0,19.0,1.0,4.0,130.0,False,True,False,False
+Spicy Asian Slaw,Lunch,Concept Kitchen,0.0,9.0,7.0,1.0,40.0,True,True,False,False
+Roasted Tomato Chutney,Lunch,Concept Kitchen,0.0,2.0,1.0,0.0,10.0,True,True,False,False
+Tamarind Chutney,Lunch,Concept Kitchen,0.0,0.0,0.0,0.0,0.0,True,True,False,False
+Mint Chutney,Lunch,Concept Kitchen,0.0,2.0,0.0,0.0,10.0,True,True,True,False
+Togarashi,Lunch,Concept Kitchen,4.0,38.0,4.0,14.0,410.0,False,False,True,False
+Toasted Sesame Seeds,Lunch,Concept Kitchen,8.0,28.0,0.0,21.0,690.0,True,True,True,False
+Sliced Scallions,Lunch,Concept Kitchen,0.0,1.0,0.0,0.0,5.0,True,True,True,False
+Steamed Broccoli,Lunch,Gluten Free Kitchen,1.0,6.0,1.0,2.0,90.0,True,True,True,True
+Grill Works,Lunch,Grill,NaN,NaN,NaN,NaN,NaN,True,True,True,False
+Creamy Tuscan Shrimp Pasta,Lunch,Home Zone,6.0,22.0,5.0,4.0,180.0,False,False,False,False
+Peri Peri Chicken Bowl,Lunch,International,3.0,43.0,7.0,33.0,465.0,False,False,False,False
+Roasted Root Vegetable,Lunch,Vegan,1.0,20.0,8.0,2.0,140.0,True,True,True,False
+Assorted Cookies,Lunch,Bakery,3.0,18.0,11.0,1.0,135.0,False,True,False,False
+Vanilla Cupcake,Lunch,Bakery,2.0,27.0,19.0,1.0,155.0,False,True,True,False
+Molten Chocolate Cake,Lunch,Bakery,10.0,33.0,24.0,3.0,290.0,False,True,True,False
+Red Velvet Cupcake,Lunch,Bakery,1.0,22.0,11.0,1.0,140.0,True,True,False,False
+Tomato Basil Soup,Dinner,Soup,NaN,NaN,NaN,NaN,NaN,False,False,False,False
+Chicken & Roasted Corn Chowder,Dinner,Soup,NaN,NaN,NaN,NaN,NaN,False,False,False,False
+Classic Cheese Pizza,Dinner,Brick Oven,4.0,34.0,3.0,12.0,250.0,False,True,True,False
+Sargent Choice Shrimp Pesto Pizza,Dinner,Brick Oven,4.0,34.0,3.0,16.0,295.0,False,False,False,False
+Caramelized Onion And Pepper Pizza,Dinner,Brick Oven,1.0,36.0,4.0,6.0,235.0,True,True,True,False
+Pita Bread,Dinner,Concept Kitchen,0.0,41.0,2.0,7.0,210.0,False,True,True,False
+Chicken Korma,Dinner,Concept Kitchen,5.0,6.0,2.0,23.0,255.0,False,False,True,False
+Sesame Honey Salmon,Dinner,Concept Kitchen,1.0,0.0,0.0,15.0,110.0,False,False,False,False
+Aloo Gobi,Dinner,Concept Kitchen,1.0,11.0,2.0,2.0,85.0,True,True,False,False
+Chinese Mapo Tofu,Dinner,Concept Kitchen,2.0,15.0,5.0,11.0,205.0,False,False,True,False
+Ginger-Sesame Dressing,Dinner,Concept Kitchen,1.0,6.0,5.0,1.0,85.0,True,True,False,False
+Masala,Dinner,Concept Kitchen,0.0,5.0,2.0,1.0,30.0,True,True,False,False
+Vegetable Fried Brown Rice,Dinner,Concept Kitchen,1.0,19.0,1.0,4.0,130.0,False,True,False,False
+Kachumber Salad,Dinner,Concept Kitchen,0.0,8.0,6.0,1.0,35.0,True,True,False,False
+Spicy Asian Slaw,Dinner,Concept Kitchen,0.0,9.0,7.0,1.0,40.0,True,True,False,False
+Roasted Tomato Chutney,Dinner,Concept Kitchen,0.0,2.0,1.0,0.0,10.0,True,True,False,False
+Mint Chutney,Dinner,Concept Kitchen,0.0,2.0,0.0,0.0,10.0,True,True,True,False
+Toasted Sesame Seeds,Dinner,Concept Kitchen,8.0,28.0,0.0,21.0,690.0,True,True,True,False
+Pickled Ginger,Dinner,Concept Kitchen,0.0,1.0,0.0,0.0,5.0,False,False,False,False
+Sliced Scallions,Dinner,Concept Kitchen,0.0,1.0,0.0,0.0,5.0,True,True,True,False
+Soy Sauce,Dinner,Concept Kitchen,0.0,2.0,0.0,2.0,20.0,True,True,False,False
+Turkey Bacon Ranch Wrap,Dinner,Deli,3.0,33.0,4.0,12.0,230.0,False,False,False,False
+Grilled Vegetable & Hummus Wrap,Dinner,Deli,2.0,31.0,3.0,6.0,215.0,True,True,True,False
+Create Your Own Sandwich Station,Dinner,Deli,NaN,NaN,NaN,NaN,NaN,True,True,True,False
+Blackened Salmon,Dinner,Gluten Free Kitchen,3.0,1.0,0.0,20.0,205.0,False,False,True,True
+100 Lemon Cream Sauce For Fish,Dinner,Gluten Free Kitchen,0.0,2.0,1.0,1.0,25.0,False,True,False,True
+Jasmine Rice,Dinner,Gluten Free Kitchen,0.0,29.0,0.0,3.0,130.0,True,True,True,True
+Vegetable Medley,Dinner,Gluten Free Kitchen,0.0,5.0,3.0,1.0,30.0,True,True,True,True
+Chicken & Roasted Corn Chowder,Dinner,Gluten Free Kitchen,NaN,NaN,NaN,NaN,NaN,False,False,False,False
+Grill Works,Dinner,Grill,NaN,NaN,NaN,NaN,NaN,True,True,True,False
+Country Shepherd's Pie,Dinner,Home Zone,10.0,40.0,5.0,28.0,510.0,False,False,False,False
+Beef Onion Gravy,Dinner,Home Zone,1.0,2.0,0.0,0.0,20.0,False,False,False,False
+Steamed Broccoli,Dinner,Home Zone,1.0,6.0,1.0,2.0,90.0,True,True,True,False
+Create Your Own,Dinner,Salad Bar,NaN,NaN,NaN,NaN,NaN,False,False,False,False
+Create Your Own,Dinner,Saute,NaN,NaN,NaN,NaN,NaN,False,False,False,False
+Vegan Chicken Fried Rice,Dinner,Vegan,1.0,27.0,4.0,11.0,180.0,True,True,True,False
+Sauteed Kale & Spinach,Dinner,Vegan,1.0,6.0,2.0,2.0,60.0,True,True,False,False
+Assorted Cookies,Dinner,Bakery,3.0,18.0,11.0,1.0,135.0,False,True,False,False
+Snickerdoodle,Dinner,Bakery,1.0,23.0,11.0,2.0,135.0,True,True,False,False
+Vanilla Crumb Cake,Dinner,Bakery,2.0,43.0,23.0,3.0,270.0,True,True,False,False
