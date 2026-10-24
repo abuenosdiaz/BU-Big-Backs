@@ -33,6 +33,11 @@ BASE_URL = "https://public.api-nonprod.bu.edu/api/v1/dining"
 
 LOCATIONS_URL = f"{BASE_URL}/locations"
 
+# The set of dining locations rarely changes day to day, so it is kept as a
+# static file in this directory instead of being re-fetched on every poll.
+# Regenerate it only when BU adds or removes a hall.
+LOCATIONS_FILE = Path(__file__).resolve().parent / "locations.json"
+
 # ``{location}`` is replaced with each id from the locations response.
 MENU_URL_TEMPLATE = f"{BASE_URL}/locations/{{location}}/menu"
 
@@ -221,26 +226,116 @@ def prune_out_of_window():
 # 5. Single polling cycle
 # ==================================================
 
-def day_is_complete(day):
-    """Return True when a day's folder has every expected menu file.
+def load_locations():
+    """Return the list of dining locations from the static locations file.
 
-    A day counts as complete only if it has ``locations.json`` and a
-    ``menu_<id>.json`` for each location listed there. Partial days left
-    behind by a failed fetch are reported incomplete so they get retried.
+    The locations rarely change, so they live in ``locations.json`` next to
+    this script. They are still confirmed against the live API once per run
+    (see ``refresh_locations``), but day-to-day the file is read, not fetched.
+    Returns the ``locations`` list, or an empty list if the file is missing or
+    malformed.
+    """
+
+    if not LOCATIONS_FILE.exists():
+        print(
+            f"  Static locations file not found at {LOCATIONS_FILE}.",
+            file=sys.stderr,
+            flush=True,
+        )
+        return []
+
+    try:
+        payload = json.loads(LOCATIONS_FILE.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as error:
+        print(
+            f"  Could not read {LOCATIONS_FILE}: {error}.",
+            file=sys.stderr,
+            flush=True,
+        )
+        return []
+
+    return payload.get("locations", [])
+
+
+def _location_ids(payload):
+    """Return the sorted set of location ids from a locations payload."""
+    return sorted(
+        str(loc.get("id"))
+        for loc in (payload.get("locations", []) or [])
+        if loc.get("id")
+    )
+
+
+def refresh_locations(api_key):
+    """Confirm the stored locations against the live API; update if changed.
+
+    Fetches the current locations and compares their ids to the stored
+    ``locations.json``. When they differ (a hall was added or removed), the
+    file is overwritten with the fresh payload and True is returned so the
+    caller can regenerate all menus. When unchanged (or the request fails and
+    we fall back to the stored copy), False is returned. A network failure is
+    non-fatal: we keep using the stored locations.
+    """
+    try:
+        live = fetch_json(LOCATIONS_URL, api_key)
+    except (urllib.error.HTTPError, urllib.error.URLError) as error:
+        print(
+            f"  Could not confirm locations ({error}); using stored copy.",
+            file=sys.stderr,
+            flush=True,
+        )
+        return False
+
+    live_ids = _location_ids(live)
+    if not live_ids:
+        print("  Live locations response was empty; using stored copy.", flush=True)
+        return False
+
+    stored_ids = _location_ids(
+        {"locations": load_locations()}
+    )
+
+    if live_ids == stored_ids:
+        print(f"  Locations unchanged ({', '.join(live_ids)}).", flush=True)
+        return False
+
+    # Locations changed: persist the fresh payload.
+    LOCATIONS_FILE.write_text(
+        json.dumps(live, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    print(
+        f"  Locations changed: {stored_ids} -> {live_ids}. "
+        f"Updated {LOCATIONS_FILE}.",
+        flush=True,
+    )
+    return True
+
+
+def regenerate_all_menus():
+    """Delete every day folder so the window is re-polled from scratch."""
+    if not DATA_DIR.exists():
+        return
+    for child in sorted(DATA_DIR.iterdir()):
+        if child.is_dir():
+            remove_dir(child)
+    print("  Cleared all day folders for full regeneration.", flush=True)
+
+
+def day_is_complete(day):
+    """Return True when a day's folder has a menu file for every location.
+
+    A day counts as complete only if it has a ``menu_<id>.json`` for each
+    location in the static locations file. Partial days left behind by a
+    failed fetch are reported incomplete so they get retried.
     """
 
     day_dir = dir_for_date(day)
 
-    locations_file = day_dir / "locations.json"
-    if not locations_file.exists():
+    locations = load_locations()
+    if not locations:
+        # With no known locations we can't judge completeness; treat as not
+        # complete so the day is attempted (and the missing file is surfaced).
         return False
-
-    try:
-        payload = json.loads(locations_file.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return False
-
-    locations = payload.get("locations", [])
 
     for location in locations:
         location_id = location.get("id")
@@ -262,20 +357,21 @@ def poll_day(api_key, day):
     day_label = day.strftime(DAY_FORMAT)
     day_dir = dir_for_date(day)
 
+    # Locations come from the static locations.json, not a daily request.
+    locations = load_locations()
+
     print(
-        f"[{timestamp_label()}] Polling {day_label}: requesting locations...",
+        f"[{timestamp_label()}] Polling {day_label}: "
+        f"{len(locations)} location(s) from static locations.json...",
         flush=True,
     )
 
-    locations_payload = fetch_json(LOCATIONS_URL, api_key)
-
-    path = write_snapshot(day_dir, "locations", locations_payload)
-    print(f"  Saved locations -> {path}", flush=True)
-
-    locations = locations_payload.get("locations", [])
-
     if not locations:
-        print("  No locations returned; skipping menu requests.", flush=True)
+        print(
+            "  No locations available (missing/empty locations.json); "
+            "skipping menu requests.",
+            flush=True,
+        )
         # Nothing to fetch and nothing to retry for this day.
         return True
 
@@ -323,13 +419,26 @@ def poll_day(api_key, day):
 # ==================================================
 
 def main():
-    """Fill any missing days in the window, then prune outside it."""
+    """Confirm locations, then maintain the 7-day menu window.
+
+    1. Confirm the stored locations against the live API. If they changed,
+       regenerate every day's menus from scratch (so the new hall set is
+       reflected everywhere).
+    2. Ensure the 7-day window is present: poll any missing/incomplete day,
+       leave complete days untouched.
+    3. Prune day folders outside the window and add new in-range days.
+    """
 
     try:
         api_key = load_api_key()
     except (FileNotFoundError, ValueError) as error:
         print(f"Startup error: {error}", file=sys.stderr)
         return 1
+
+    print(f"[{timestamp_label()}] Confirming dining locations...", flush=True)
+    locations_changed = refresh_locations(api_key)
+    if locations_changed:
+        regenerate_all_menus()
 
     dates = window_dates()
 
