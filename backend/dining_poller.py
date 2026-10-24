@@ -19,6 +19,7 @@ standard library, so no extra packages need to be installed.
 """
 
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
@@ -72,7 +73,11 @@ WINDOW_DAYS = DAYS_AHEAD + 1
 # ==================================================
 
 def load_api_key(env_path=ENV_FILE):
-    """Read ``API_KEY`` from a simple ``KEY=VALUE`` ``.env`` file."""
+    """Read ``API_KEY`` from the environment, else a simple ``KEY=VALUE`` ``.env`` file."""
+
+    # Hosts like Render set API_KEY as an environment variable instead of a file.
+    if os.environ.get("API_KEY"):
+        return os.environ["API_KEY"]
 
     if not env_path.exists():
         raise FileNotFoundError(
