@@ -4,7 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { PageShell } from "@/components/SiteHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { getDeviceId, timeAgo } from "@/lib/dishes";
+import { requireBuUser, toastWriteError } from "@/lib/auth";
+import { timeAgo } from "@/lib/dishes";
 import { FORUM_HALLS, HALLS } from "@/lib/halls";
 import { cn } from "@/lib/utils";
 
@@ -52,9 +53,10 @@ function Forums() {
 
   const post = useMutation({
     mutationFn: async () => {
+      await requireBuUser();
       const { error } = await supabase
         .from("forum_posts")
-        .insert({ hall, topic, title: title.trim(), body: body.trim(), device_id: getDeviceId() });
+        .insert({ hall, topic, title: title.trim(), body: body.trim() });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -63,7 +65,7 @@ function Forums() {
       toast("Posted anonymously.");
       qc.invalidateQueries({ queryKey: ["forum", hall] });
     },
-    onError: () => toast.error("Couldn't post. Try again."),
+    onError: (e) => toastWriteError(e, "Couldn't post. Try again."),
   });
 
   return (

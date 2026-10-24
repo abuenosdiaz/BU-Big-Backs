@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { PageShell } from "@/components/SiteHeader";
 import { LoveButton, Tag } from "@/components/DishCard";
 import { getItemAllergens } from "@/lib/api";
-import { dishImage, getDeviceId, rankByCampus, timeAgo, useDishes, type Dish } from "@/lib/dishes";
+import { requireBuUser, toastWriteError } from "@/lib/auth";
+import { dishImage, rankByCampus, timeAgo, useDishes, type Dish } from "@/lib/dishes";
 import { toggleIn, useProfile } from "@/lib/profile";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -204,9 +205,10 @@ function Comments({ dish }: { dish: Dish }) {
   });
   const post = useMutation({
     mutationFn: async () => {
+      await requireBuUser();
       const { error } = await supabase
         .from("dish_comments")
-        .insert({ dish_id: dish.id, body: body.trim(), tried: true, device_id: getDeviceId() });
+        .insert({ dish_id: dish.id, body: body.trim(), tried: true });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -216,7 +218,7 @@ function Comments({ dish }: { dish: Dish }) {
       qc.invalidateQueries({ queryKey: ["comments", dish.id] });
       qc.invalidateQueries({ queryKey: ["dishes"] });
     },
-    onError: () => toast.error("Couldn't post your comment. Try again."),
+    onError: (e) => toastWriteError(e, "Couldn't post your comment. Try again."),
   });
 
   return (

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMenu, type MenuRow } from "@/lib/api";
+import { requireBuUser, toastWriteError, useAuth } from "@/lib/auth";
 import aiPhotos from "@/lib/dish-images.json";
 import { toAllergens } from "@/lib/profile";
 
@@ -91,23 +91,6 @@ export type Dish = {
   comments: number;
 };
 
-const DEVICE_KEY = "bb-device-id";
-
-export function getDeviceId() {
-  let v = localStorage.getItem(DEVICE_KEY);
-  if (!v) {
-    v = crypto.randomUUID();
-    localStorage.setItem(DEVICE_KEY, v);
-  }
-  return v;
-}
-
-export function useDeviceId() {
-  const [id, setId] = useState<string | null>(null);
-  useEffect(() => setId(getDeviceId()), []);
-  return id;
-}
-
 const DIET_TAGS = [
   ["vegetarian", "Vegetarian"],
   ["vegan", "Vegan"],
@@ -152,15 +135,15 @@ function toDish(r: MenuRow, sort: number): Omit<Dish, "loves" | "loved" | "comme
  * dishes whose ingredients contain them, and dishes with unknown ingredients.
  */
 export function useDishes(avoid: string[] = []) {
-  const device = useDeviceId();
+  // Keyed by user so "loved" refreshes on sign-in and sign-out.
+  const user = useAuth();
   const exclude = [...new Set(toAllergens(avoid))].sort().join(",");
   return useQuery({
-    queryKey: ["dishes", device, exclude],
-    enabled: !!device,
+    queryKey: ["dishes", user?.id ?? null, exclude],
     queryFn: async () => {
       const [menu, stats] = await Promise.all([
         getMenu({ date: today(), ...(exclude && { exclude_allergens: exclude }) }),
-        supabase.rpc("get_dish_stats", { p_device: device! }),
+        supabase.rpc("get_dish_stats"),
       ]);
       // Votes are optional: still show the menu if Supabase is unavailable.
       if (stats.error) console.warn("Couldn't load dish votes:", stats.error.message);
@@ -187,16 +170,18 @@ export function useDishes(avoid: string[] = []) {
 }
 
 export function useToggleLove() {
-  const device = useDeviceId();
+  const user = useAuth();
   const qc = useQueryClient();
+  const key = ["dishes", user?.id ?? null];
   return useMutation({
     mutationFn: async (dishId: string) => {
-      const { error } = await supabase.rpc("toggle_love", { p_dish: dishId, p_device: device! });
+      await requireBuUser();
+      const { error } = await supabase.rpc("toggle_love", { p_dish: dishId });
       if (error) throw error;
     },
     onMutate: async (dishId) => {
-      // Update every cached dish list (one per allergen filter) optimistically.
-      const key = ["dishes", device];
+      if (!user) return;
+      // Update every cached dish list for this user (one per allergen filter) optimistically.
       await qc.cancelQueries({ queryKey: key });
       const prev = qc.getQueriesData<Dish[]>({ queryKey: key });
       qc.setQueriesData<Dish[]>({ queryKey: key }, (old) =>
@@ -206,8 +191,9 @@ export function useToggleLove() {
       );
       return { prev };
     },
-    onError: (_e, _id, ctx) => {
+    onError: (e, _id, ctx) => {
       ctx?.prev.forEach(([k, data]) => qc.setQueryData(k, data));
+      toastWriteError(e, "Couldn't save your vote. Try again.");
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["dishes"] }),
   });
