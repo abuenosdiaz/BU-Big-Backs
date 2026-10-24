@@ -5,8 +5,8 @@ Every POLL_INTERVAL seconds this script:
     1. Reads ``API_KEY`` from the ``.env`` file.
     2. Requests the list of dining locations.
     3. Requests the menu for each location id returned by step 2.
-    4. Writes each JSON response to the ``data`` directory as a
-       timestamped snapshot.
+    4. Writes each JSON response to the ``data`` directory, overwriting
+       the previous cycle's file.
 
 The script relies only on the Python standard library, so no extra
 packages need to be installed.
@@ -45,7 +45,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 ENV_FILE = REPO_ROOT / ".env"
 
-# Snapshots are written here, one subfolder per polling cycle.
+# Snapshots are written here. Files are overwritten on each polling cycle.
 DATA_DIR = Path(__file__).resolve().parent / "data"
 
 
@@ -125,12 +125,12 @@ def timestamp_label():
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
 
-def write_snapshot(cycle_dir, name, payload):
-    """Write one JSON payload into the current cycle's folder."""
+def write_snapshot(name, payload):
+    """Write one JSON payload, overwriting any previous file."""
 
-    cycle_dir.mkdir(parents=True, exist_ok=True)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-    output_path = cycle_dir / f"{name}.json"
+    output_path = DATA_DIR / f"{name}.json"
 
     output_path.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False),
@@ -147,13 +147,11 @@ def write_snapshot(cycle_dir, name, payload):
 def poll_once(api_key):
     """Fetch the locations and every location's menu once."""
 
-    cycle_dir = DATA_DIR / timestamp_label()
-
     print(f"[{timestamp_label()}] Requesting dining locations...", flush=True)
 
     locations_payload = fetch_json(LOCATIONS_URL, api_key)
 
-    path = write_snapshot(cycle_dir, "locations", locations_payload)
+    path = write_snapshot("locations", locations_payload)
     print(f"  Saved locations -> {path}", flush=True)
 
     locations = locations_payload.get("locations", [])
@@ -190,7 +188,7 @@ def poll_once(api_key):
             )
             continue
 
-        path = write_snapshot(cycle_dir, f"menu_{location_id}", menu_payload)
+        path = write_snapshot(f"menu_{location_id}", menu_payload)
         print(f"  Saved menu for '{location_id}' -> {path}", flush=True)
 
 
