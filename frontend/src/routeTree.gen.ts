@@ -15,6 +15,7 @@ import { Route as ForumsRouteImport } from './routes/forums'
 import { Route as NearMeRouteImport } from './routes/near-me'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as StatsRouteImport } from './routes/stats'
 import { Route as DishIdRouteImport } from './routes/dish.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -47,6 +48,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StatsRoute = StatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DishIdRoute = DishIdRouteImport.update({
   id: '/dish/$id',
   path: '/dish/$id',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/near-me': typeof NearMeRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/stats': typeof StatsRoute
   '/dish/$id': typeof DishIdRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/near-me': typeof NearMeRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/stats': typeof StatsRoute
   '/dish/$id': typeof DishIdRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/near-me': typeof NearMeRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/stats': typeof StatsRoute
   '/dish/$id': typeof DishIdRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/near-me'
     | '/profile'
     | '/settings'
+    | '/stats'
     | '/dish/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/near-me'
     | '/profile'
     | '/settings'
+    | '/stats'
     | '/dish/$id'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/near-me'
     | '/profile'
     | '/settings'
+    | '/stats'
     | '/dish/$id'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   NearMeRoute: typeof NearMeRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
+  StatsRoute: typeof StatsRoute
   DishIdRoute: typeof DishIdRoute
 }
 
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stats': {
+      id: '/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof StatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dish/$id': {
       id: '/dish/$id'
       path: '/dish/$id'
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   NearMeRoute: NearMeRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
+  StatsRoute: StatsRoute,
   DishIdRoute: DishIdRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { guessAllergens } from "@/lib/allergens";
 import { getMenu, type MenuRow } from "@/lib/api";
 import { requireBuUser, toastWriteError, useAuth } from "@/lib/auth";
 import aiPhotos from "@/lib/dish-images.json";
+import { toAllergens } from "@/lib/profile";
 
 const images = import.meta.glob("@/assets/dishes/*.jpg", { eager: true, import: "default" }) as Record<
   string,
@@ -69,13 +69,15 @@ export type Nutrition = {
 
 export type Dish = {
   id: string;
+  /** location_id and item_id from the menu API, for /api/items lookups */
+  locationId: string;
+  itemId: string;
   name: string;
   campus: string;
   hall: string;
   station: string;
   calories: number;
   tags: string[];
-  allergens: string[];
   description: string;
   ingredients: string[];
   sort: number;
@@ -105,13 +107,14 @@ function today() {
 function toDish(r: MenuRow, sort: number): Omit<Dish, "loves" | "loved" | "comments"> {
   return {
     id: `${r.location_id}-${r.item_id}`,
+    locationId: r.location_id,
+    itemId: r.item_id,
     name: r.item_name,
     campus: r.campus,
     hall: r.location_name,
     station: r.station,
     calories: r.calories ?? 0,
     tags: DIET_TAGS.filter(([k]) => r[k]).map(([, label]) => label),
-    allergens: guessAllergens(r),
     description: r.description && r.description !== "null" ? r.description : "",
     ingredients: [],
     sort,
@@ -127,14 +130,19 @@ function toDish(r: MenuRow, sort: number): Omit<Dish, "loves" | "loved" | "comme
   };
 }
 
-export function useDishes() {
+/**
+ * Today's dishes. `avoid` takes profile "avoid" choices (e.g. "Dairy"); the API drops
+ * dishes whose ingredients contain them, and dishes with unknown ingredients.
+ */
+export function useDishes(avoid: string[] = []) {
   // Keyed by user so "loved" refreshes on sign-in and sign-out.
   const user = useAuth();
+  const exclude = [...new Set(toAllergens(avoid))].sort().join(",");
   return useQuery({
-    queryKey: ["dishes", user?.id ?? null],
+    queryKey: ["dishes", user?.id ?? null, exclude],
     queryFn: async () => {
       const [menu, stats] = await Promise.all([
-        getMenu({ date: today() }),
+        getMenu({ date: today(), ...(exclude && { exclude_allergens: exclude }) }),
         supabase.rpc("get_dish_stats"),
       ]);
       // Votes are optional: still show the menu if Supabase is unavailable.
@@ -173,9 +181,10 @@ export function useToggleLove() {
     },
     onMutate: async (dishId) => {
       if (!user) return;
+      // Update every cached dish list for this user (one per allergen filter) optimistically.
       await qc.cancelQueries({ queryKey: key });
-      const prev = qc.getQueryData<Dish[]>(key);
-      qc.setQueryData<Dish[]>(key, (old) =>
+      const prev = qc.getQueriesData<Dish[]>({ queryKey: key });
+      qc.setQueriesData<Dish[]>({ queryKey: key }, (old) =>
         old?.map((d) =>
           d.id === dishId ? { ...d, loved: !d.loved, loves: d.loves + (d.loved ? -1 : 1) } : d,
         ),
@@ -183,7 +192,7 @@ export function useToggleLove() {
       return { prev };
     },
     onError: (e, _id, ctx) => {
-      if (ctx?.prev) qc.setQueryData(key, ctx.prev);
+      ctx?.prev.forEach(([k, data]) => qc.setQueryData(k, data));
       toastWriteError(e, "Couldn't save your vote. Try again.");
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["dishes"] }),

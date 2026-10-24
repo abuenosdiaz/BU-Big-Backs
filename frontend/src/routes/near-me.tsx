@@ -25,12 +25,12 @@ export const Route = createFileRoute("/near-me")({
 const FALLBACK = { lat: 42.3505, lng: -71.1054 };
 
 function NearMe() {
-  const { data } = useDishes();
   const { profile } = useProfile();
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const [status, setStatus] = useState<"off" | "asking" | "on" | "denied">("off");
   const [limit, setLimit] = useState(10);
   const [onlyFits, setOnlyFits] = useState(true);
+  const { data } = useDishes(onlyFits ? profile.avoid : []);
 
   useEffect(() => setLimit(profile.walkLimit), [profile.walkLimit]);
 
