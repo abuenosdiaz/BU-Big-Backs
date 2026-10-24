@@ -14,5 +14,5 @@ __pycache__/
 # Node
 node_modules/
 
-# concept/ uses bun.lock; ignore stray npm lockfiles
+# frontend/ uses bun.lock; ignore stray npm lockfiles
 package-lock.json

@@ -5,7 +5,7 @@ DataFrame.
 
 Expected layout (any depth works, the search is recursive):
 
-    server/
+    backend/
         data/
             2026-10-24/                <- a day folder (service date, YYYY-MM-DD)
                 locations.json         <- skipped (not a menu payload)
