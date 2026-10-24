@@ -1,2 +1,18 @@
 # server/dining_poller.py reads API_KEY from the root .env; never commit it
 .env
+
+# OS / editor junk
+.DS_Store
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node
+node_modules/
+
+# concept/ uses bun.lock; ignore stray npm lockfiles
+package-lock.json
