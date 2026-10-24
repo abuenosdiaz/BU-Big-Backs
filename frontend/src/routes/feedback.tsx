@@ -211,7 +211,7 @@ function RequestItem() {
         <select className="field mt-1" value={hall} onChange={(e) => setHall(e.target.value)}>
           <option>Any hall</option>
           {HALLS.map((h) => (
-            <option key={h.name}>{h.short === "West Campus" ? "West Campus" : h.name}</option>
+            <option key={h.id}>{h.short}</option>
           ))}
         </select>
       </label>

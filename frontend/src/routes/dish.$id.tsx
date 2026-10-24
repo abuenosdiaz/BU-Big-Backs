@@ -30,7 +30,7 @@ function DishPage() {
   const { profile, update } = useProfile();
   const dish = data?.find((d) => d.id === id);
   const rank = dish && data ? rankByCampus(data, dish.campus).findIndex((d) => d.id === id) + 1 : 0;
-  const img = dishImage(id);
+  const img = dish && dishImage(dish.name);
   const starred = profile.starred.includes(id);
   const disliked = profile.disliked.includes(id);
   const notify = profile.notifyMe.includes(id);
@@ -54,7 +54,7 @@ function DishPage() {
               <p className="eyebrow">#{rank} in {dish.campus}</p>
               <h1 className="page-title mt-2">{dish.name}</h1>
               <p className="mt-2 text-muted-foreground">
-                {dish.hall} · {dish.station} · {dish.meal}
+                {dish.hall} · {dish.station} · {dish.meals.join(", ")}
               </p>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {dish.tags.map((t) => (
@@ -92,28 +92,35 @@ function DishPage() {
                   Just ate it? Rate it
                 </Link>
               </div>
-              {dish.allergens.length > 0 && (
-                <div className="allergen-box mt-6">
-                  <strong>Contains: {dish.allergens.join(", ")}</strong>
-                  <p className="mt-1">
-                    Prepared in a kitchen that also handles other allergens. Ask staff if you have a severe allergy.
-                  </p>
-                </div>
-              )}
+              <div className="allergen-box mt-6">
+                <strong>
+                  {dish.allergens.length > 0
+                    ? `Likely contains: ${dish.allergens.join(", ")}`
+                    : "No common allergens detected from the name"}
+                </strong>
+                <p className="mt-1">
+                  BU's menu doesn't list allergens, so these are guessed from the dish name and may be
+                  incomplete. Ask staff if you have an allergy.
+                </p>
+              </div>
             </div>
           </div>
 
           <div className="mt-12 grid gap-10 md:grid-cols-[1fr_320px]">
             <div>
-              <h2 className="font-display text-3xl font-black tracking-tight text-foreground">Ingredients</h2>
-              <ul className="mt-3 grid grid-cols-2 gap-2 text-sm text-foreground">
-                {dish.ingredients.map((i) => (
-                  <li key={i} className="rounded-lg bg-secondary px-3 py-2">
-                    {i}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-3 text-xs text-muted-foreground">Full ingredient statement: {dish.ingredients.join(", ")}.</p>
+              {dish.ingredients.length > 0 && (
+                <>
+                  <h2 className="font-display text-3xl font-black tracking-tight text-foreground">Ingredients</h2>
+                  <ul className="mt-3 grid grid-cols-2 gap-2 text-sm text-foreground">
+                    {dish.ingredients.map((i) => (
+                      <li key={i} className="rounded-lg bg-secondary px-3 py-2">
+                        {i}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-3 text-xs text-muted-foreground">Full ingredient statement: {dish.ingredients.join(", ")}.</p>
+                </>
+              )}
               <Comments dish={dish} />
             </div>
             <NutritionFacts dish={dish} />
@@ -141,7 +148,7 @@ function NutritionFacts({ dish }: { dish: Dish }) {
     <aside className="nutrition-label h-fit">
       <h3 className="font-display text-3xl font-black leading-none">Nutrition Facts</h3>
       <div className="mt-1 border-b-8 border-foreground pb-1 text-sm">
-        <strong>Serving size</strong> {n.serving ?? "1 plate"}
+        <strong>Serving size</strong> {n.serving ?? "1 serving"}
       </div>
       <div className="flex items-end justify-between border-b-4 border-foreground py-1">
         <span className="text-lg font-black">Calories</span>
@@ -149,15 +156,16 @@ function NutritionFacts({ dish }: { dish: Dish }) {
       </div>
       <div className="py-1 text-right text-xs font-bold">% Daily Value*</div>
       <div className="text-sm">
-        <Row label="Total Fat" value={`${n.fat ?? 0}g`} dv={pct(n.fat, DV.fat)} bold />
-        <Row label="Saturated Fat" value={`${n.satFat ?? 0}g`} dv={pct(n.satFat, DV.satFat)} indent />
-        <Row label="Cholesterol" value={`${n.chol ?? 0}mg`} dv={pct(n.chol, DV.chol)} bold />
-        <Row label="Sodium" value={`${n.sodium ?? 0}mg`} dv={pct(n.sodium, DV.sodium)} bold />
-        <Row label="Total Carbohydrate" value={`${n.carbs ?? 0}g`} dv={pct(n.carbs, DV.carbs)} bold />
-        <Row label="Dietary Fiber" value={`${n.fiber ?? 0}g`} dv={pct(n.fiber, DV.fiber)} indent />
-        <Row label="Total Sugars" value={`${n.sugars ?? 0}g`} indent />
+        {/* Only rows the menu API gives us: missing values are left out, not shown as 0. */}
+        {n.fat != null && <Row label="Total Fat" value={`${n.fat}g`} dv={pct(n.fat, DV.fat)} bold />}
+        {n.satFat != null && <Row label="Saturated Fat" value={`${n.satFat}g`} dv={pct(n.satFat, DV.satFat)} indent />}
+        {n.chol != null && <Row label="Cholesterol" value={`${n.chol}mg`} dv={pct(n.chol, DV.chol)} bold />}
+        {n.sodium != null && <Row label="Sodium" value={`${n.sodium}mg`} dv={pct(n.sodium, DV.sodium)} bold />}
+        {n.carbs != null && <Row label="Total Carbohydrate" value={`${n.carbs}g`} dv={pct(n.carbs, DV.carbs)} bold />}
+        {n.fiber != null && <Row label="Dietary Fiber" value={`${n.fiber}g`} dv={pct(n.fiber, DV.fiber)} indent />}
+        {n.sugars != null && <Row label="Total Sugars" value={`${n.sugars}g`} indent />}
         <div className="border-b-8 border-foreground">
-          <Row label="Protein" value={`${n.protein ?? 0}g`} bold />
+          {n.protein != null && <Row label="Protein" value={`${n.protein}g`} bold />}
         </div>
       </div>
       <p className="mt-2 text-[11px] leading-snug">

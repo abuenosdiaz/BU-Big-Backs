@@ -28,7 +28,7 @@ export function Tag({ children }: { children: string }) {
 }
 
 export function DishCard({ dish, rank }: { dish: Dish; rank: number }) {
-  const img = dishImage(dish.id);
+  const img = dishImage(dish.name);
   return (
     <Link to="/dish/$id" params={{ id: dish.id }} className="dish-card group">
       <div className="relative h-[200px] overflow-hidden rounded-2xl bg-muted">
@@ -62,7 +62,7 @@ export function DishCard({ dish, rank }: { dish: Dish; rank: number }) {
             <Tag key={t}>{t}</Tag>
           ))}
           {dish.allergens.length > 0 && (
-            <span className="allergen-tag">Contains: {dish.allergens.join(", ")}</span>
+            <span className="allergen-tag">Likely contains: {dish.allergens.join(", ")}</span>
           )}
         </div>
       </div>

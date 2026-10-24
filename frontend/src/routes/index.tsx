@@ -3,7 +3,8 @@ import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { PageShell } from "@/components/SiteHeader";
 import { DishCard } from "@/components/DishCard";
-import { CAMPUSES, rankByCampus, useDishes } from "@/lib/dishes";
+import { CAMPUSES, MEALS, rankByCampus, useDishes } from "@/lib/dishes";
+import { HALLS } from "@/lib/halls";
 import { avoidsAllergens, fitsDiet, fitsProfile, useProfile, AVOIDS, toggleIn } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 
@@ -21,15 +22,9 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const HALL_CHIPS = ["West Campus Dining Hall", "Warren Towers", "Marciano Commons", "Fenway Dining Hall"];
-const HALL_LABEL: Record<string, string> = {
-  "West Campus Dining Hall": "West",
-  "Warren Towers": "Warren",
-  "Marciano Commons": "Marciano",
-  "Fenway Dining Hall": "Fenway",
-};
-const MEALS = ["Breakfast", "Lunch", "Dinner"];
-const DIET_FILTERS = ["Vegetarian", "Vegan", "Halal", "Gluten-free", "Kosher"];
+const DIET_FILTERS = ["Vegetarian", "Vegan", "Halal", "Gluten-free"];
+/** Cards shown per campus before "Show all". */
+const PREVIEW = 9;
 
 function Index() {
   const { data, isLoading, error } = useDishes();
@@ -41,7 +36,10 @@ function Index() {
   const [avoid, setAvoid] = useState<string[]>([]);
   const [sort, setSort] = useState<"loved" | "newest">("loved");
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState<string[]>([]);
   const activeCount = meals.length + diets.length + avoid.length;
+  // Only offer meals on today's menu (e.g. Brunch on Sundays).
+  const todaysMeals = data ? MEALS.filter((m) => data.some((d) => d.meals.includes(m))) : [...MEALS];
 
   const dishes = useMemo(() => {
     let list = data ?? [];
@@ -51,7 +49,7 @@ function Index() {
       list = list.filter((d) => [d.name, d.station, d.hall, ...d.ingredients].join(" ").toLowerCase().includes(s));
     }
     if (hall) list = list.filter((d) => d.hall === hall);
-    if (meals.length) list = list.filter((d) => meals.includes(d.meal));
+    if (meals.length) list = list.filter((d) => d.meals.some((m) => meals.includes(m)));
     list = list.filter((d) => fitsDiet(d, diets) && avoidsAllergens(d, avoid));
     return list;
   }, [data, profile, q, hall, meals, diets, avoid]);
@@ -79,15 +77,21 @@ function Index() {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {HALL_CHIPS.map((h) => (
-          <button key={h} onClick={() => setHall(hall === h ? null : h)} className={cn("chip", hall === h && "chip-active")}>
-            {HALL_LABEL[h]}
+        {HALLS.map((h) => (
+          <button key={h.id} onClick={() => setHall(hall === h.name ? null : h.name)} className={cn("chip", hall === h.name && "chip-active")}>
+            {h.short}
           </button>
         ))}
         <span className="mx-1 w-px bg-border" />
         {["Vegetarian", "Vegan", "Gluten-free", "Halal"].map((f) => (
           <button key={f} onClick={() => setDiets(toggleIn(diets, f))} className={cn("chip", diets.includes(f) && "chip-diet")}>
             {f}
+          </button>
+        ))}
+        <span className="mx-1 w-px bg-border" />
+        {todaysMeals.map((m) => (
+          <button key={m} onClick={() => setMeals(toggleIn(meals, m))} className={cn("chip", meals.includes(m) && "chip-active")}>
+            {m}
           </button>
         ))}
       </div>
@@ -100,6 +104,7 @@ function Index() {
       {profile.hideMismatch && (profile.diets.length > 0 || profile.avoid.length > 0) && (
         <p className="mt-2 text-sm text-muted-foreground">
           Showing only dishes that fit your restrictions ({[...profile.diets, ...profile.avoid.map((a) => `no ${a.toLowerCase()}`)].join(", ")}).
+          {profile.avoid.length > 0 && " Allergens are guessed from dish names, so always check with staff."}
         </p>
       )}
 
@@ -117,9 +122,16 @@ function Index() {
               ) : ranked.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No matching dishes here right now.</p>
               ) : (
-                ranked.map((d, i) => <DishCard key={d.id} dish={d} rank={i + 1} />)
+                (expanded.includes(campus) ? ranked : ranked.slice(0, PREVIEW)).map((d, i) => (
+                  <DishCard key={d.id} dish={d} rank={i + 1} />
+                ))
               )}
             </div>
+            {data && ranked.length > PREVIEW && (
+              <button className="chip mt-5" onClick={() => setExpanded(toggleIn(expanded, campus))}>
+                {expanded.includes(campus) ? "Show less" : `Show all ${ranked.length}`}
+              </button>
+            )}
           </section>
         );
       })}
@@ -146,9 +158,9 @@ function Index() {
                 </button>
               </div>
             </div>
-            <FilterGroup label="Meal" options={MEALS} value={meals} onChange={setMeals} />
+            <FilterGroup label="Meal" options={todaysMeals} value={meals} onChange={setMeals} />
             <FilterGroup label="Diet" options={DIET_FILTERS} value={diets} onChange={setDiets} />
-            <FilterGroup label="Hide dishes containing" options={[...AVOIDS]} value={avoid} onChange={setAvoid} />
+            <FilterGroup label="Hide dishes likely containing" options={[...AVOIDS]} value={avoid} onChange={setAvoid} />
             <p className="field-label mt-6">Sort by</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {(
