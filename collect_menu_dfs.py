@@ -7,23 +7,33 @@ Expected layout (any depth works, the search is recursive):
 
     server/
         data/
-            20261024T170131Z/          <- a snapshot folder (UTC timestamp)
+            2026-10-24/                <- a day folder (service date, YYYY-MM-DD)
                 locations.json         <- skipped (not a menu payload)
                 menu_marciano.json     <- parsed
                 menu_warren.json       <- parsed
                 menu_west.json         <- parsed
-            20261025T.../
+            2026-10-25/
                 ...
+            2026-10-30/
+                ...
+
+The poller now writes one folder per service day (seven days: today plus the
+upcoming week), each holding one menu file per dining hall. Because the search
+is recursive, new day folders and new hall files are picked up automatically on
+the next run with no code changes.
 
 Only files whose JSON actually contains a "meals" list are parsed, so sibling
 files such as ``locations.json`` are ignored automatically.
 
 Every row in the combined DataFrame is tagged with provenance columns so you
-can tell which snapshot and which file it came from:
+can tell which day and which file it came from:
 
     source_file       absolute path to the JSON file
     source_filename   just the file name, e.g. "menu_marciano.json"
-    snapshot          the immediate parent folder name, e.g. "20261024T170131Z"
+    snapshot          the immediate parent folder name, e.g. "2026-10-24"
+    collection_day    that folder name parsed to a date (NaT if not a date),
+                      a reliable per-row service day even if a file's internal
+                      "date" field is ever missing
 
 How to use
 ----------
@@ -72,12 +82,22 @@ def _looks_like_menu(data: Any) -> bool:
 
 
 def _add_provenance(df: pd.DataFrame, json_file: Path) -> pd.DataFrame:
-    """Attach columns that record where each row came from."""
+    """Attach columns that record where each row came from.
+
+    The day folders are named by service date (YYYY-MM-DD), so the folder name
+    is parsed into ``collection_day``. This gives a dependable per-row day for
+    the forward-looking analysis even if a file's internal "date" is missing;
+    it is NaT when the folder name is not a parseable date.
+    """
     df = df.copy()
+    folder_name = json_file.parent.name
+    collection_day = pd.to_datetime(folder_name, errors="coerce").normalize()
+
     # Insert provenance columns at the front so they are easy to see.
-    df.insert(0, "snapshot", json_file.parent.name)
-    df.insert(1, "source_filename", json_file.name)
-    df.insert(2, "source_file", str(json_file.resolve()))
+    df.insert(0, "snapshot", folder_name)
+    df.insert(1, "collection_day", collection_day)
+    df.insert(2, "source_filename", json_file.name)
+    df.insert(3, "source_file", str(json_file.resolve()))
     return df
 
 
@@ -165,8 +185,8 @@ def main() -> pd.DataFrame:
           f"{combined['source_file'].nunique()} menu file(s).\n")
     print("Rows per location:")
     print(combined["location_name"].value_counts(dropna=False).to_string())
-    print("\nRows per snapshot:")
-    print(combined["snapshot"].value_counts(dropna=False).to_string())
+    print("\nRows per collection day:")
+    print(combined["snapshot"].value_counts(dropna=False).sort_index().to_string())
     print("\nRows per meal:")
     print(combined["meal"].value_counts(dropna=False).to_string())
     print("\nPreview:")

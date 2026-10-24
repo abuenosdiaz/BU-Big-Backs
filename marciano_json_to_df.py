@@ -98,6 +98,17 @@ BOOLEAN_COLUMNS = [
     "cool_food",
 ]
 
+# Text columns where an absent value should read as the literal string
+# "null" rather than NaN. A float NaN is meaningless for a text field and
+# shows up confusingly in the table and in exported CSVs, so missing text
+# (most commonly a missing item description) is filled with "null".
+STRING_MISSING_FILL = "null"
+STRING_COLUMNS = [
+    "description",
+    "item_id",
+    "item_name",
+]
+
 # Final column order for the flattened DataFrame.
 COLUMNS = [
     # context: where/when
@@ -223,6 +234,17 @@ def menu_json_to_df(data: Mapping[str, Any]) -> pd.DataFrame:
         # Preserve genuine missing values as <NA> rather than coercing to
         # False, using pandas' nullable boolean dtype.
         df[column] = df[column].astype("boolean")
+
+    # Fill missing text with the literal "null" instead of NaN. JSON nulls and
+    # empty strings both count as missing here. Numeric and boolean columns are
+    # left untouched so their math/aggregations still treat gaps as missing.
+    for column in STRING_COLUMNS:
+        df[column] = (
+            df[column]
+            .where(df[column].notna(), other=STRING_MISSING_FILL)
+            .replace("", STRING_MISSING_FILL)
+            .astype(str)
+        )
 
     # Order rows by meal (Breakfast, Lunch, Dinner), then station, then name.
     meal_order = {"Breakfast": 0, "Brunch": 1, "Lunch": 2, "Dinner": 3}
