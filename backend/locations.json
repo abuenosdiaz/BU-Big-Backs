@@ -1,0 +1,30 @@
+{
+  "locations": [
+    {
+      "id": "marciano",
+      "name": "The Fresh Food Co. at Marciano Commons",
+      "short_name": "Marciano Commons",
+      "campus": "East Campus",
+      "address": "100 Bay State Road",
+      "source_url": "https://www.bu.edu/dining/location/marciano/"
+    },
+    {
+      "id": "warren",
+      "name": "The Fresh Food Co. at Warren Towers",
+      "short_name": "Warren Towers",
+      "campus": "Central Campus",
+      "address": "700 Commonwealth Avenue",
+      "source_url": "https://www.bu.edu/dining/location/warren/"
+    },
+    {
+      "id": "west",
+      "name": "The Fresh Food Co. at West Campus",
+      "short_name": "West Campus",
+      "campus": "West Campus",
+      "address": "275 Babcock Street",
+      "source_url": "https://www.bu.edu/dining/location/west/"
+    }
+  ],
+  "source": "Boston University Dining Services",
+  "source_url": "https://www.bu.edu/dining/"
+}
