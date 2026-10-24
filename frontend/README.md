@@ -1,21 +1,29 @@
-# BU Big Backs — web app
+# Welcome to your Lovable project
 
-Next.js (App Router) + Tailwind, backed by Supabase. Students browse the most loved BU dining hall dishes, heart their favourites, comment, post in hall forums and send feedback. Everything is anonymous: each browser gets a random device id.
+This project was built with [Lovable](https://lovable.dev).
 
-```bash
-cp .env.example .env.local
-npm install
-npm run dev        # http://localhost:3000
+## Build with Lovable
+
+Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+
+- **Ship faster**: describe what you want to build and Lovable handles the code.
+- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
+- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+
+## Development
+
+Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+
+```sh
+git clone <this-repository-url>
+cd <repository-name>
+npm i
+npm run dev
 ```
 
-`npm run build` builds for production, `npm run lint` lints.
+## Built with
 
-## Layout
-
-- `app/` — one folder per page (`page.tsx` sets the title, the component next to it is the page). Pages: dishes (`/`), `/dish/[id]`, `/near-me`, `/forums`, `/feedback`, `/profile`, `/settings`.
-- `components/` — site header and dish cards.
-- `lib/` — data hooks (`dishes.ts`), dining hall info (`halls.ts`), the per-device profile (`profile.ts`) and the Supabase client.
-- `public/dishes/` — dish photos, named `<dish id>.jpg`.
-- `supabase/migrations/` — SQL that creates the tables and the `get_menu` / `toggle_love` functions, if the database ever needs rebuilding.
-
-Votes go through the `get_menu` / `toggle_love` database functions; the vote table has no direct client access, so counts can't be tampered with row by row.
+- TanStack Start
+- TypeScript
+- React
+- Tailwind CSS
