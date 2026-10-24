@@ -1,1 +1,0 @@
-DELETE FROM public.dish_loves;
