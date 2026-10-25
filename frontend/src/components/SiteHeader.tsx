@@ -9,6 +9,7 @@ const NAV = [
   { to: "/near-me", label: "Near me" },
   { to: "/forums", label: "Forums" },
   { to: "/feedback", label: "Feedback" },
+  { to: "/stats", label: "Stats" },
 ] as const;
 
 export function SiteHeader() {

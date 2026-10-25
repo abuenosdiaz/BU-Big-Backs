@@ -1,19 +1,30 @@
 import { useCallback, useEffect, useState } from "react";
+import type { Allergen } from "./api";
 import type { Dish } from "./dishes";
 
-export const DIETS = ["Vegetarian", "Vegan", "Pescatarian", "Halal", "Gluten-free"] as const;
-export const AVOIDS = ["Peanuts", "Tree nuts", "Dairy", "Eggs", "Shellfish", "Soy", "Sesame"] as const;
+export const DIETS = ["Vegetarian", "Vegan", "Halal", "Gluten-free"] as const;
 
-/** Maps "avoid" choices to allergen names stored on dishes. */
-const AVOID_TO_ALLERGEN: Record<string, string> = {
-  Peanuts: "Peanuts",
-  "Tree nuts": "Tree nuts",
-  Dairy: "Milk",
-  Eggs: "Egg",
-  Shellfish: "Shellfish",
-  Soy: "Soy",
-  Sesame: "Sesame",
+/** "Avoid" choices and the menu API allergen category each one excludes. */
+const AVOID_TO_ALLERGEN: Record<string, Allergen> = {
+  Peanuts: "peanut",
+  "Tree nuts": "tree_nuts",
+  Dairy: "dairy",
+  Eggs: "egg",
+  Fish: "fish",
+  Shellfish: "shellfish",
+  Wheat: "wheat",
+  Gluten: "gluten",
+  Soy: "soy",
+  Sesame: "sesame",
+  Mustard: "mustard",
+  Sulfites: "sulfites",
 };
+export const AVOIDS = Object.keys(AVOID_TO_ALLERGEN);
+
+/** API allergen categories for a list of "avoid" choices, for exclude_allergens. */
+export function toAllergens(avoid: string[]) {
+  return avoid.flatMap((a) => AVOID_TO_ALLERGEN[a] ?? []);
+}
 
 export type Profile = {
   name: string;
@@ -89,16 +100,11 @@ export function fitsDiet(dish: Dish, diets: string[]) {
   const known = diets.filter((d) => (DIETS as readonly string[]).includes(d));
   return known.every((d) => {
     if (d === "Vegetarian") return dish.tags.includes("Vegetarian") || dish.tags.includes("Vegan");
-    if (d === "Pescatarian")
-      return dish.tags.includes("Vegetarian") || dish.tags.includes("Vegan") || dish.allergens.includes("Fish");
     return dish.tags.includes(d);
   });
 }
 
-export function avoidsAllergens(dish: Dish, avoid: string[]) {
-  return avoid.every((a) => !dish.allergens.includes(AVOID_TO_ALLERGEN[a] ?? a));
-}
-
+/** Diet check only: allergens are filtered by the API (pass profile.avoid to useDishes). */
 export function fitsProfile(dish: Dish, p: Profile) {
-  return fitsDiet(dish, p.diets) && avoidsAllergens(dish, p.avoid);
+  return fitsDiet(dish, p.diets);
 }

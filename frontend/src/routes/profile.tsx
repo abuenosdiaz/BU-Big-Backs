@@ -24,9 +24,11 @@ export const Route = createFileRoute("/profile")({
 function ProfilePage() {
   const { profile } = useProfile();
   const { data } = useDishes();
+  // "For you" also leaves out dishes with the profile's allergens (filtered by the API).
+  const { data: safe } = useDishes(profile.avoid);
   const [tab, setTab] = useState<"starred" | "disliked">("starred");
   const byId = new Map((data ?? []).map((d) => [d.id, d]));
-  const forYou = (data ?? [])
+  const forYou = (safe ?? [])
     .filter((d) => fitsProfile(d, profile) && !profile.disliked.includes(d.id))
     .sort((a, b) => Number(profile.starred.includes(b.id)) - Number(profile.starred.includes(a.id)) || b.loves - a.loves)
     .slice(0, 3);

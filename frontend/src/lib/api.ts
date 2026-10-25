@@ -31,14 +31,32 @@ export type MenuRow = {
   cool_food: boolean | null;
 };
 
+/** Allergen categories the API derives from each item's ingredient list. */
+export type Allergen =
+  | "dairy"
+  | "egg"
+  | "fish"
+  | "shellfish"
+  | "tree_nuts"
+  | "peanut"
+  | "wheat"
+  | "gluten"
+  | "soy"
+  | "sesame"
+  | "mustard"
+  | "sulfites";
+
 export type MenuFilters = {
   hall?: string;
   campus?: string;
   date?: string;
   meal?: string;
   station?: string;
-  diet?: "vegan" | "vegetarian" | "gluten_free" | "halal";
+  /** Comma-separated; items must match all of them */
+  diet?: string;
   q?: string;
+  /** Comma-separated; keeps items containing none of them (unknown items are dropped) */
+  exclude_allergens?: string;
 };
 
 async function apiGet<T>(path: string, params: Record<string, string | undefined> = {}) {
@@ -51,10 +69,47 @@ async function apiGet<T>(path: string, params: Record<string, string | undefined
   return body as T;
 }
 
-export const getHalls = () => apiGet<{ halls: ApiHall[] }>("/api/halls");
+export const DIET_KEYS = ["vegetarian", "vegan", "gluten_free", "halal", "cool_food"] as const;
+export type DietKey = (typeof DIET_KEYS)[number];
+
+/** One row of dining_diet_analysis.build_hall_summary. */
+export type HallStats = {
+  dining_hall: string;
+  campus: string;
+  first_day: string;
+  last_day: string;
+  total_items: number;
+  avg_calories: number;
+  avg_carbohydrates_grams: number;
+  avg_protein_grams: number;
+  avg_saturated_fat_grams: number;
+} & Record<`total_${DietKey}` | `percent_${DietKey}` | `change_${DietKey}`, number>;
+
+export type Stats = {
+  overall: {
+    total_items: number;
+    halls: number;
+    first_day: string;
+    last_day: string;
+    percent: Record<DietKey, number>;
+    avg_nutrition: Record<"calories" | "carbohydrates_grams" | "protein_grams" | "saturated_fat_grams", number>;
+  };
+  halls: HallStats[];
+};
+
+export const getStats = () => apiGet<Stats>("/api/stats");
+
+export const getMetadata = () =>
+  apiGet<{ halls: ApiHall[]; campuses: string[]; dates: string[]; meals: string[] }>("/api/metadata");
 
 export const getMenu = (filters: MenuFilters = {}) =>
   apiGet<{ count: number; rows: MenuRow[] }>("/api/menu", filters);
+
+/** An item's ingredient statement and the allergen categories found in it. 404 if unknown. */
+export const getItemAllergens = (location: string, itemId: string) =>
+  apiGet<{ ingredients: string | null; allergens: Allergen[] }>(
+    `/api/items/${encodeURIComponent(location)}/${encodeURIComponent(itemId)}/allergens`,
+  );
 
 export const getItem = (itemId: string) =>
   apiGet<{ item_id: string; item_name: string; occurrences: MenuRow[] }>(
