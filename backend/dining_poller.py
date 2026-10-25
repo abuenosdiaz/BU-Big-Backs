@@ -25,6 +25,7 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 # ==================================================
 # 1. Configuration
@@ -149,9 +150,10 @@ def timestamp_label():
 
 
 def today():
-    """Return today's UTC date."""
+    """Return today's date in Boston, which is how BU's menus are dated."""
 
-    return datetime.now(timezone.utc).date()
+    # UTC rolls over at 8pm Boston time, which pruned the current day's menu early.
+    return datetime.now(ZoneInfo("America/New_York")).date()
 
 
 def window_dates():
